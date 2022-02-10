@@ -79,7 +79,7 @@ tidy.brfss.df <- brfss.df %>%
   select(year, state, county, response, sample_size, data_value) %>% #only retain some of the columns for working with data
   mutate(
     year = as.numeric(year),
-    county = str_remove(county, "County"), #remove county from each data entry
+    county = str_remove(county, "County"),  #remove county from each data entry
     response = as.factor(response) %>% 
       fct_relevel("Poor", "Fair", "Good", "Very good"), #relevel from alphabetical to poor - excellent scale
   ) %>% 
@@ -89,8 +89,6 @@ tidy.brfss.df <- brfss.df %>%
 
 #check that it all looks good
 str(tidy.brfss.df)
-
-
 ```
 
 
@@ -128,7 +126,7 @@ tidy.brfss.df %>%
   filter(unique_locs == 6) %>% #filter by states that observed 6 unique county locations in 2004
   rename(
     "State" = "state",
-    "Unique Locations Observed" = "unique_locs"
+    "Locations Observed" = "unique_locs"
   ) %>% 
   gt() %>% 
   tab_header("States that were observed at 6 different locations in 2004")
@@ -137,4 +135,33 @@ tidy.brfss.df %>%
 
 
 
-### 3.3.2 
+### 3.3.2 Make a “spaghetti plot” that shows the number of observed locations in each state from 2002 to 2010. Which state has the highest mean number of locations over this period?
+
+
+```{r}
+tidy.brfss.df %>% 
+  group_by(year, state) %>% 
+  summarise(unique_locs = n_distinct(county)) %>% #new variable tallying number of unique county locations observed in each state
+  
+  ggplot(aes(x = year, 
+             y = unique_locs, 
+             color =  fct_reorder(state, unique_locs, .fun = mean, .desc = TRUE))
+         ) +
+  geom_line(size = 1) +
+  scale_color_viridis_d("State") +
+  labs(
+    x = "Year",
+    y = "Locations Observed",
+    title = "Locations Observed in Each State from 2002 - 2010"
+  )
+```
+
+
+The state with the highest mean number of locations observed each year from 2002 - 2010 is New Jersey (NJ) while the lowest is West Virginia (WV). It appears there may be some connection between mean number of locations observed in each state with how rural those states are. It appears that states with low population density tend to have fewer locations observed than states with higher population density.
+
+For the most part, trends appear to be quite stable over time across all states with a trend towards gradually increasing the number of locations observed in each state. This trend has also led to more variability across states in how many locations were observed each year. For instance, in 2002 all states recorded fewer than 10 locations observed, with many recording less than around 6. However, by 2010, that changed quite a bit, with many states recording more than around 6 locations and a handful greater than 10 locations. One state even recorded close to 20 locations while another recorded around 40 locations in 2007 and 2010.
+
+
+### 3.3.3 Make a table showing, for the years 2002, 2006, and 2010, the mean and standard deviation of sample size and proportion of Excellent, Good, and Poor responses across locations in MN. 
+
+
