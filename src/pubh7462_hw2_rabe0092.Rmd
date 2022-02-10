@@ -4,8 +4,8 @@ author: "Jack Rabe"
 date: "2/9/2022"
 output: 
   github_document:
-    toc:true
-    toc_float: true
+    toc: true
+    toc_depth: 3
 ---
 
 ```{r setup, include=FALSE}
@@ -58,7 +58,7 @@ brfss.df <- read.csv(file = "./data/brfss_smart_2010.csv", header = TRUE) %>%
 ```
 
 
-```{r}
+```{r, include=FALSE}
 #use dataExplorer to do some basic EDA
 introduce(brfss.df) 
 plot_intro(brfss.df)
@@ -103,13 +103,13 @@ There are `r nrow(tidy.brfss.df)` observations in the filtered **BRFSS** data se
 
 The variables are as follows:
 
-- *year* of course refers to the year (`r min(tidy.brfss.df$year) - max(tidy.brfss.df$year)`) of penguin being measured
+- *year* of course refers to the year (`r min(tidy.brfss.df$year)` to `r max(tidy.brfss.df$year)`) of penguin being measured
 
 - *state* refers to the US state the surveys were conducted in for each observation
 
 - *county* refers to the county the surveys were conducted in
 
-- *health_cond* refers to the overall health condition (`r levels(tidy.brfss.df$health_cond`) that people could respond with when asked how they would rate their general health
+- *health_cond* refers to the overall health condition (`r levels(tidy.brfss.df$health_cond)`) that people could respond with when asked how they would rate their general health
 
 - *sample_size* refers to the number of responses recorded for a specific rating/condition (e.g. excellent) for that US county during that year's survey.
 
