@@ -116,4 +116,25 @@ The variables are as follows:
 - *prop_response* refers to the proportion, or more accurately, percent of responses that rated themselves as a specific condition out of the total number of survey responses.
 
 
+## 3.3 Do Data Science
 
+### 3.3.1 In the year 2004, which states were observed at 6 locations?
+
+```{r}
+tidy.brfss.df %>% 
+  filter(year == 2004) %>% #filter to only 2004
+  group_by(state) %>% 
+  summarise(unique_locs = n_distinct(county)) %>% #new variable tallying number of unique county locations observed in each state
+  filter(unique_locs == 6) %>% #filter by states that observed 6 unique county locations in 2004
+  rename(
+    "State" = "state",
+    "Unique Locations Observed" = "unique_locs"
+  ) %>% 
+  gt() %>% 
+  tab_header("States that were observed at 6 different locations in 2004")
+  
+```
+
+
+
+### 3.3.2 
