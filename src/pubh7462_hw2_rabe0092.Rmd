@@ -70,11 +70,11 @@ plot_str(brfss.df)
 
 ```{r, warning=FALSE, results='hide'}
 #tidy time
-tidy.brfss.df <- brfss.df %>% 
+tidy_brfss.df <- brfss.df %>% 
   janitor::clean_names() %>%  #clean up variable names
   filter(topic == "Overall Health") %>% #only retain rows where topic is overall health
   separate(col = "locationdesc",
-           sep = "-",
+           sep = " - ",
            into = c("state", "county")) %>% #separate column into two distinct variables, "state" and "county"
   select(year, state, county, response, sample_size, data_value) %>% #only retain some of the columns for working with data
   mutate(
@@ -88,7 +88,7 @@ tidy.brfss.df <- brfss.df %>%
   arrange(year, state, county, health_cond)
 
 #check that it all looks good
-str(tidy.brfss.df)
+str(tidy_brfss.df)
 ```
 
 
@@ -96,18 +96,18 @@ str(tidy.brfss.df)
 
 *Case definition*: Each observation in the retained **BRFSS** data set represents the number of responses, within a specific United States county and over a single year, that rated their health in a certain category along a scale of "poor" to "excellent." Each recorded response comes from adults in the United States who were surveyed over the phone by the Center for Disease Control and asked how they would rate their general health condition.
 
-There are `r nrow(tidy.brfss.df)` observations in the filtered **BRFSS** data set with `r ncol(tidy.brfss.df)` variables.
+There are `r nrow(tidy_brfss.df)` observations in the filtered **BRFSS** data set with `r ncol(tidy_brfss.df)` variables.
 
 
 The variables are as follows:
 
-- *year* of course refers to the year (`r min(tidy.brfss.df$year)` to `r max(tidy.brfss.df$year)`) of penguin being measured
+- *year* of course refers to the year (`r min(tidy_brfss.df$year)` to `r max(tidy_brfss.df$year)`) of penguin being measured
 
 - *state* refers to the US state the surveys were conducted in for each observation
 
 - *county* refers to the county the surveys were conducted in
 
-- *health_cond* refers to the overall health condition (`r levels(tidy.brfss.df$health_cond)`) that people could respond with when asked how they would rate their general health
+- *health_cond* refers to the overall health condition (`r levels(tidy_brfss.df$health_cond)`) that people could respond with when asked how they would rate their general health
 
 - *sample_size* refers to the number of responses recorded for a specific rating/condition (e.g. excellent) for that US county during that year's survey.
 
@@ -119,7 +119,7 @@ The variables are as follows:
 ### 3.3.1 In the year 2004, which states were observed at 6 locations?
 
 ```{r}
-tidy.brfss.df %>% 
+tidy_brfss.df %>% 
   filter(year == 2004) %>% #filter to only 2004
   group_by(state) %>% 
   summarise(unique_locs = n_distinct(county)) %>% #new variable tallying number of unique county locations observed in each state
@@ -139,15 +139,16 @@ tidy.brfss.df %>%
 
 
 ```{r}
-tidy.brfss.df %>% 
+tidy_brfss.df %>% 
   group_by(year, state) %>% 
   summarise(unique_locs = n_distinct(county)) %>% #new variable tallying number of unique county locations observed in each state
-  
+
+  #spaghetti plot of locations observed in each state by year  
   ggplot(aes(x = year, 
              y = unique_locs, 
-             color =  fct_reorder(state, unique_locs, .fun = mean, .desc = TRUE))
+             color =  fct_reorder(state, unique_locs, .fun = mean, .desc = TRUE)) #highest to lowest mean locs observed
          ) +
-  geom_line(size = 1) +
+  geom_line() +
   scale_color_viridis_d("State") +
   labs(
     x = "Year",
@@ -163,5 +164,86 @@ For the most part, trends appear to be quite stable over time across all states 
 
 
 ### 3.3.3 Make a table showing, for the years 2002, 2006, and 2010, the mean and standard deviation of sample size and proportion of Excellent, Good, and Poor responses across locations in MN. 
+
+```{r}
+tidy_brfss.df %>%
+  filter(
+    state %in% "MN" &
+      year %in% c(2002, 2006, 2010) &
+      health_cond %in% c("Poor", "Good", "Excellent")
+  ) %>% 
+  group_by(year, health_cond) %>%
+  summarise(
+    sample_size_mean = mean(sample_size, na.rm = TRUE),
+    sample_size_sd   = sd(sample_size, na.rm = TRUE),
+    prop_mean = mean(prop_response, na.rm = TRUE),
+    prop_sd   = sd(prop_response, na.rm = TRUE)
+  ) %>% 
+  rename(Year = year,
+         "Health Condition" = health_cond,
+         ) %>% 
+  gt() %>% 
+  tab_header("Mean and S.D. of the total number and proportion of responses for each health condition in the state of Minnesota during 2002, 2006, and 2010") %>% 
+   fmt_number(
+     columns = c(sample_size_mean, sample_size_sd, prop_mean, prop_sd),
+     decimals = 1)
+```
+
+
+From a quick look at this table, it appears that the mean number of adults surveyed about their general health steadily increases from year to year. In other words, the number of responses for each health condition seem to rise across the board over time. As would be expected with an increase in the mean, the variability (standard deviation) in responses by health condition also appears to increase over time in Minnesota.
+
+On the other hand, it doesn't appear that the proportion of responses for overall condition of health (peoples perception of how healthy they are) changes significantly over time and seem quite stable. The variability (standard deviation), especially for people responding with good or excellent overall health, seems to fluctuate quite a bit, with the sd for good and excellent increasing over time.
+
+
+### 3.3.4 Make stand-alone plot of data from the above table
+
+```{r, warning=FALSE, message=FALSE}
+tidy_brfss.df %>%
+  filter(
+    state %in% "MN" &
+      year %in% c(2002, 2006, 2010) &
+      health_cond %in% c("Poor", "Good", "Excellent")
+  ) %>% 
+  group_by(year, health_cond) %>%
+  summarise(
+    sample_size_mean = mean(sample_size, na.rm = TRUE),
+    sample_size_sd   = sd(sample_size, na.rm = TRUE),
+    prop_mean = mean(prop_response, na.rm = TRUE),
+    prop_sd   = sd(prop_response, na.rm = TRUE)
+  ) %>% 
+  pivot_longer(cols = contains(c("mean", "sd")), #taking time from wide to long
+               names_to = "stat_type",  
+               values_to = "stat_value"
+               ) %>% 
+
+#now make the appropriate plot
+ggplot(aes(x = year, y = stat_value, color = health_cond)) +
+    geom_point(size = 4, alpha = 0.44, shape = 16) +
+    stat_smooth(alpha = 0.1, 
+              size = 1.2, 
+              method = "loess",
+              span = 2,
+              se = FALSE) +
+  labs(
+    x = "Year",
+    y = "Mean or Standard Deviation",
+    title = "Mean and SD trends of the total number and proportion of responses for\neach health condition in the state of Minnesota during 2002, 2006, and 2010"
+  ) +
+  scale_colour_viridis_d("Health Condition") + 
+  facet_wrap(~ stat_type, scales = "free", ncol = 2) + 
+  scale_x_continuous(breaks = c(2002, 2006, 2010))
+```
+
+
+Here we can see the same trends that I stated above with regard to the table version. However, visualizing the results in this way allows you to really see the differences and pick up any small nuances that might not be significant. For instance, we see again that the mean number of responses for each health condition rises considerably over time. By plotting, we can better see the magnitude of such changes, where the mean and sd of total responses rises much faster between 2006 and 2010 and for people saying they're in good or excellent condition. Between 2002 and 2006 and for people responding as having poor health, this rise is more gradual.
+
+In terms of proportion of responses for each health condition, we see that the mean changes little to none across all three categories, aside from 2006 where good and excellent diverge slightly. However, even though the mean proportions don't change much, that's not the case for the standard deviation, where it rises considerably for those responding as having good or excellent health, particiularly from 2006 to 2010. There is also a rise for people resonding with poor health but it is not as pronounced.
+
+
+
+
+```{r, include=FALSE}
+sessionInfo()
+```
 
 
