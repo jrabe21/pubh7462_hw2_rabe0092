@@ -186,7 +186,7 @@ tidy_brfss.df %>%
   tab_header("Mean and S.D. of the total number and proportion of responses for each health condition in the state of Minnesota during 2002, 2006, and 2010") %>% 
    fmt_number(
      columns = c(sample_size_mean, sample_size_sd, prop_mean, prop_sd),
-     decimals = 1)%>% 
+     decimals = 1) %>% 
   as_raw_html() #prevents source code from displaying on github doc
 ```
 
