@@ -118,7 +118,7 @@ The variables are as follows:
 
 ### 3.3.1 In the year 2004, which states were observed at 6 locations?
 
-```{r}
+```{r, message=FALSE}
 tidy_brfss.df %>% 
   filter(year == 2004) %>% #filter to only 2004
   group_by(state) %>% 
@@ -129,8 +129,8 @@ tidy_brfss.df %>%
     "Locations Observed" = "unique_locs"
   ) %>% 
   gt() %>% 
-  tab_header("States that were observed at 6 different locations in 2004")
-  
+  tab_header("States that were observed at 6 different locations in 2004") %>% 
+  as_raw_html() #prevents source code from displaying on github doc
 ```
 
 
@@ -186,7 +186,8 @@ tidy_brfss.df %>%
   tab_header("Mean and S.D. of the total number and proportion of responses for each health condition in the state of Minnesota during 2002, 2006, and 2010") %>% 
    fmt_number(
      columns = c(sample_size_mean, sample_size_sd, prop_mean, prop_sd),
-     decimals = 1)
+     decimals = 1)%>% 
+  as_raw_html() #prevents source code from displaying on github doc
 ```
 
 
